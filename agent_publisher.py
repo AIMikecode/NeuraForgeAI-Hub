@@ -1,4 +1,4 @@
-import os
+timport os
 import logging
 from github import Github
 from github.GithubException import GithubException
