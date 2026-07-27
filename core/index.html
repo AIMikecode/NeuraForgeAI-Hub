@@ -1,0 +1,47 @@
+<!-- Widget de Chat Gemini para Telegram Mini App -->
+<div id="gemini-chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+    <button onclick="toggleChat()" style="background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        💬 Chat Neuraforge AI
+    </button>
+</div>
+
+<div id="chat-box" style="display: none; position: fixed; bottom: 80px; right: 20px; width: 320px; height: 400px; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; flex-direction: column; z-index: 9999;">
+    <div style="font-weight: bold; color: var(--accent); margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+        🤖 Neuraforge AI Assistant
+    </div>
+    <div id="chat-messages" style="flex: 1; overflow-y: auto; font-size: 13px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;">¡Hola! Soy tu asistente IA. ¿En qué te ayudo hoy?</div>
+    </div>
+    <div style="display: flex; gap: 5px;">
+        <input type="text" id="chat-input" placeholder="Escribe tu duda..." style="flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #444; background: #111; color: #fff;">
+        <button onclick="enviarMensajeChat()" style="background: var(--accent); color: #000; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer;">></button>
+    </div>
+</div>
+
+<script>
+function toggleChat() {
+    const box = document.getElementById('chat-box');
+    box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+}
+
+async function enviarMensajeChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    
+    const container = document.getElementById('chat-messages');
+    container.innerHTML += `<div style="background: var(--primary); padding: 8px; border-radius: 8px; align-self: flex-end;">${msg}</div>`;
+    input.value = '';
+    
+    // Llamada al backend Flask (`server.py`)
+    const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: msg, user_id: 'telegram_webapp' })
+    });
+    const data = await res.json();
+    
+    container.innerHTML += `<div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; align-self: flex-start;">${data.response}</div>`;
+    container.scrollTop = container.scrollHeight;
+}
+</script>
