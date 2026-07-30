@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+,#!/usr/bin/env python3
 """
 🤖 NEURAFORGEAI CORE - ORQUESTADOR MULTI-AGENTE
 Sincroniza: Agente Monetízame, Cash, Afiliados Cloud y Sabueso Multi-APIs
@@ -53,12 +53,12 @@ async def agente_monetizame_foto(update: Update, context: ContextTypes.DEFAULT_T
     telegram_id = str(update.effective_user.id)
     photo_file = await update.message.photo[-1].get_file()
     image_bytes = await photo_file.download_as_bytearray()
-
+    
     USER_SESSIONS[telegram_id] = {"image_bytes": bytes(image_bytes), "contexto": "monetizame"}
-
+    
     btn_gps = KeyboardButton("📍 Enviar Ubicación para Tasación Regional", request_location=True)
     reply_markup = ReplyKeyboardMarkup([[btn_gps]], one_time_keyboard=True, resize_keyboard=True)
-
+    
     await update.message.reply_text(
         "🧠 *Agente Monetízame:* Foto recibida. Analizando características...\n"
         "Por favor, comparte tu ubicación para calcular el valor óptimo de mercado regional.",
@@ -68,15 +68,15 @@ async def agente_monetizame_foto(update: Update, context: ContextTypes.DEFAULT_T
 
 async def agente_monetizame_procesar(update: Update, context: ContextTypes.DEFAULT_TYPE, lat: float, lon: float):
     telegram_id = str(update.effective_user.id)
-
+    
     # Análisis simulado (se puede conectar con orion_caza_reversa.py o monetizacion_agent.py)
     producto_identificado = "Activo / Coleccionable Analizado"
     precio_venta = 1200.00
     precio_renta_dia = 75.00
-
+    
     if telegram_id not in USER_SESSIONS:
         USER_SESSIONS[telegram_id] = {}
-
+        
     USER_SESSIONS[telegram_id]["analisis"] = {
         "item": producto_identificado,
         "venta": precio_venta,
@@ -84,7 +84,7 @@ async def agente_monetizame_procesar(update: Update, context: ContextTypes.DEFAU
         "lat": lat,
         "lon": lon
     }
-
+    
     texto = (
         f"🔍 *Agente Monetízame IA*\n"
         f"📦 *Objeto:* {producto_identificado}\n"
@@ -94,7 +94,7 @@ async def agente_monetizame_procesar(update: Update, context: ContextTypes.DEFAU
         f"📅 *Renta Local:* ${precio_renta_dia} MXN/día\n\n"
         f"Selecciona la acción a ejecutar:"
     )
-
+    
     keyboard = [
         [InlineKeyboardButton("💰 Ejecutar Venta Express", callback_data="mon_action_venta")],
         [InlineKeyboardButton("🔑 Poner en Renta Activa", callback_data="mon_action_renta")]
@@ -109,7 +109,8 @@ async def comando_cash(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "💰 *Agente Cash - NeuraForge Marketplace*\n\n"
         "🤖 *1. Neuraforge Bot Premium* -> Algoritmos de trading y ejecución.\n"
         "📲 *2. APKs Modificadas Pro* -> Herramientas optimizadas.\n"
-        "💻 *3. Nodos Web3* -> Minería pasiva de Forgecoins (FGC).\n"    )
+        "💻 *3. Nodos Web3* -> Minería pasiva de Forgecoins (FGC).\n"
+    )
     keyboard = [
         [InlineKeyboardButton("🤖 Adquirir Bot Premium", callback_data="cash_buy_bot")],
         [InlineKeyboardButton("📲 Mod APKs", callback_data="cash_buy_apk")]
@@ -139,37 +140,35 @@ async def comando_sabueso(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🛰️ *Sabueso Multi-APIs Result*\n\n"
         "Rastreo completado en pools de liquidez y airdrops.\n"
         f"Liquidez recuperable estimada: *{payouts_encontrados} BTC*."
-# ==========================================
-# 5️⃣ AGENTE SABUESO MULTI-APIS
-# ==========================================                                            async def comando_sabueso(update: Update, context: ContextTypes.DEFAULT_TYPE):              payouts_encontrados = 0.0034
-    texto = (
-        "🛰️ *Sabueso Multi-APIs Result*\n\n"
-        "Rastreo completado en pools de liquidez y airdrops.\n"
-        f"Liquidez recuperable estimada: *{payouts_encontrados} BTC*."
     )
-    keyboard = [[InlineKeyboardButton("💳 Reclamar a Wallet", callback_data="sabueso_cl>
-    await update.message.reply_text(texto, parse_mode="Markdown", reply_markup=InlineKe>
+    keyboard = [[InlineKeyboardButton("💳 Reclamar a Wallet", callback_data="sabueso_claim")]]
+    await update.message.reply_text(texto, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
 
 # ==========================================
-# ⚙️ DESPACHADORES Y CALLBACKS                                                           # ==========================================
+# ⚙️ DESPACHADORES Y CALLBACKS
+# ==========================================
 async def manejar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     data = query.data
     telegram_id = str(query.from_user.id)
-
-    if data.startswith("mon_action_"):                                                          accion = data.split("_")[-1]
-        info = USER_SESSIONS.get(telegram_id, {}).get("analisis", {"item": "Activo", "v>
-
+    
+    if data.startswith("mon_action_"):
+        accion = data.split("_")[-1]
+        info = USER_SESSIONS.get(telegram_id, {}).get("analisis", {"item": "Activo", "venta": 0})
+        
         if supabase:
             try:
-                supabase.table("activos_monetizados").insert({                                              "telegram_id": telegram_id,                                                             "nombre_activo": info["item"],
+                supabase.table("activos_monetizados").insert({
+                    "telegram_id": telegram_id,
+                    "nombre_activo": info["item"],
                     "estado": accion,
                     "precio": info.get(accion, info.get("venta", 0))
                 }).execute()
-            except Exception as e:                                                                      logger.error(f"Error registrando en Supabase: {e}")
-
-        await query.edit_message_text(f"✅ *¡Acción Registrada!* Tu activo ha sido proc>
+            except Exception as e:
+                logger.error(f"Error registrando en Supabase: {e}")
+                
+        await query.edit_message_text(f"✅ *¡Acción Registrada!* Tu activo ha sido procesado para `{accion.upper()}` en el Hub.")
 
 async def despachador_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message and update.message.location:
@@ -186,16 +185,24 @@ def main():
         return
 
     app = Application.builder().token(token).build()
-
+    
     # Handlers de Comandos
     app.add_handler(CommandHandler("start", comando_start))
     app.add_handler(CommandHandler("cash", comando_cash))
     app.add_handler(CommandHandler("cloud", comando_afiliados))
     app.add_handler(CommandHandler("sabueso", comando_sabueso))
-
+    
     # Handlers de Mensajes y Ubicación
     app.add_handler(MessageHandler(filters.PHOTO, agente_monetizame_foto))
     app.add_handler(MessageHandler(filters.LOCATION, despachador_mensajes))
-
+    
     # Callbacks
     app.add_handler(CallbackQueryHandler(manejar_callback))
+    
+    print("🚀 NeuraForgeAI Hub corriendo correctamente en Termux...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
+   
+
